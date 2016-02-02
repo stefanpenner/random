@@ -1,7 +1,12 @@
 being explicit about life-times and side-affects may allow us to address some common UI problems:
 
-* latency increases the chances of concurrency related interference, but we should aim for no possibility of plan interference if possible
-* common patterns cause happy paths to be susceptible to these sorts of problems
+* latency increases the chances of concurrency related interference, but we
+  should aim for no possibility of plan interference if possible
+* common patterns cause happy paths to be susceptible to these sorts of
+  problems
+
+**NOTE: this example (using async/await) will likely not work, as the function
+implicitly retains the `this`.**
 
 POC: [ember-weak-ref](https://github.com/stefanpenner/ember-weak-ref)
 
