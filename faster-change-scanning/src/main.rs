@@ -82,6 +82,7 @@ fn main() {
       // Add a path to be watched. All files and directories at that path and
       // below will be monitored for changes.
       watcher.watch("../../ember-cli");
+      watcher.watch("../../ember-cli");
 
       let count = 0;
       loop {
