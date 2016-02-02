@@ -3,6 +3,7 @@ being explicit about life-times and side-affects may allow us to address some co
 * latency increases the chances of concurrency related interference, but we should aim for no possibility of plan interference if possible
 * common patterns cause happy paths to be susceptible to these sorts of problems
 
+POC: [ember-weak-ref](https://github.com/stefanpenner/ember-weak-ref)
 
 ### example
 
