@@ -267,25 +267,17 @@ want specific entities to be retained by the operation. Their exists another
 scenario, a scenario were some of the async operations can (and likely should)
 be unsubscribed from, potentially even cancelled entirely.
 
-If we adapt the above example, instead of saving a record (which we likely want
-to do regardless)
+One approach is cancelation token, maybe something like:
 
 ```js
 export default Component.extend({
   actions: {
-    save() {
-      this.saving = true;
-      this.weak('save', async (component) => {
-
-        try {
-          let model = await component.model.save();
-        } finally {
-          // ignore these operations, if
-          // * the this.weak('save') is invoked again, resulting in a new operation id
-          // * the component is destroyed
-          // * if the compnoent has been released
-          component.saving = false;
-        }
+    async update() {
+      this.updating = true;
+      try {
+        let model = await this.store.find('user', this.id, this.cancelationTokenFor('willDestroyElement')).
+      } finally {
+        component.updating = false;
       }
     }
   }
