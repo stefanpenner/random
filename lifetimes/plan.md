@@ -5,9 +5,6 @@ being explicit about life-times and side-affects may allow us to address some co
 * common patterns cause happy paths to be susceptible to these sorts of
   problems
 
-**NOTE: this example (using async/await) will likely not work, as the function
-implicitly retains the `this`.**
-
 POC: [ember-weak-ref](https://github.com/stefanpenner/ember-weak-ref)
 
 ### example
@@ -15,7 +12,7 @@ POC: [ember-weak-ref](https://github.com/stefanpenner/ember-weak-ref)
 ```js
 export default Component.extend({
   actions: {
-    save() {
+    async save() {
       this.saving = true;
       try {
         let model = await this.model.save();
@@ -33,6 +30,7 @@ The lifetime of the await is different from that of the UI component, if the
 await returns and the component is still rendered, all is well. Unfortunately,
 if the await completes and the component is no longer present, bad things can happen.
 
+0. functions with a `this` slot that is used, will retain the `this` forcing all async steps within it also to do so.
 1. the component is currently retained until the await completes
 2. operations on the component may not be valid once the await completes (imagine save being invoked again, before the first completes);
 
@@ -120,7 +118,6 @@ WeakCell
 ```js
 export default Component.extend({
   actions: {
-    @cancelPending // on re-invocation, cancel pending
     async save() {
       this.saving = true;
       const cell = new WeakRef(this);
@@ -144,9 +141,49 @@ pros:
 
 cons:
 
+* still leaks, because `this` is retained as part of the calling function ***issue***
 * not-really ergonomic
 * WeakCell may retain the component, so operating on the component may be
   possible, although likely not intended
+
+----
+
+WeakCell \w inner context
+
+```js
+export default Component.extend({
+  actions: {
+    save() {
+      this.saving = true;
+      let model = this.model;
+
+      this.weak(async (cell) => {
+        try {
+          // kinda crappy ergonomics..
+          let model = await cell.get().model.save();
+        } finally {
+          let component = cell.get()
+          if (component) component.saving = false;
+        }
+      })
+    }
+  }
+})
+```
+
+pros:
+
+* same as above
+* doesn't leak the `this`
+
+cons:
+
+* same as above
+* not-really ergonomic
+* WeakCell may retain the component, so operating on the component may be
+  possible, although likely not intended
+
+
 
 --------
 
@@ -155,19 +192,18 @@ WeakCell \w ergonomic noop proxy
 ```js
 export default Component.extend({
   actions: {
-    @cancelPending // on re-invocation, cancel pending
-    async save() {
+    save() {
       this.saving = true;
-      const component = this.weak();
-
-      try {
-        let model = await this.model.save();
-      } finally {
-        // ignore these operations, if
-        // * the component is destroyed
-        // * if the compnoent has been released
-        component.saving = false;
-      }
+      this.weak(async (component) => {
+        try {
+          let model = await component.model.save();
+        } finally {
+          // ignore these operations, if
+          // * the component is destroyed
+          // * if the compnoent has been released
+          component.saving = false;
+        }
+      });
     }
   }
 })
@@ -195,17 +231,17 @@ export default Component.extend({
   actions: {
     async save() {
       this.saving = true;
-      const component = this.weak('save');
-
-      try {
-        let model = await this.model.save();
-      } finally {
-        // ignore these operations, if
-        // * the this.weak('save') is invoked again, resulting in a new operation id
-        // * the component is destroyed
-        // * if the compnoent has been released
-        component.saving = false;
-      }
+      this.weak('save', (component) => {
+        try {
+          let model = await component.model.save();
+        } finally {
+          // ignore these operations, if
+          // * the this.weak('save') is invoked again, resulting in a new operation id
+          // * the component is destroyed
+          // * if the compnoent has been released
+          component.saving = false;
+        }
+      });
     }
   }
 })
@@ -222,4 +258,37 @@ con:
 
 * not all cases can safely cancel pending tasks
 
+--------
+
+## Cancellation
+
+The above speaks to cases were you do want the async to continue, but don't
+want specific entities to be retained by the operation. Their exists another
+scenario, a scenario were some of the async operations can (and likely should)
+be unsubscribed from, potentially even cancelled entirely.
+
+If we adapt the above example, instead of saving a record (which we likely want
+to do regardless)
+
+```js
+export default Component.extend({
+  actions: {
+    save() {
+      this.saving = true;
+      this.weak('save', async (component) => {
+
+        try {
+          let model = await component.model.save();
+        } finally {
+          // ignore these operations, if
+          // * the this.weak('save') is invoked again, resulting in a new operation id
+          // * the component is destroyed
+          // * if the compnoent has been released
+          component.saving = false;
+        }
+      }
+    }
+  }
+})
+```
 
