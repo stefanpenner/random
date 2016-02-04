@@ -22,3 +22,5 @@ cnstruct fun primitives for performance safe productive concurrency
   * long-stack traces...
 * buzzwords
 
+
+ideally complexity is derived from some stable simple rules, and the larger system merely responds to it
