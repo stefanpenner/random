@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>QUnit Example</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.21.0.css">
+  <style>
+    #module-dropdown {
+      position: absolute;
+      display: none;
+    }
+
+    #module-dropdown select {
+      height: 400px;
+      max-width: 500px;
+    }
+  </style>
+
+  <script src="http://code.jquery.com/jquery-1.12.0.js"></script>
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="https://code.jquery.com/qunit/qunit-1.21.0.js"></script>
+
+  <script>
+    module("foo");
+    test("foo.test", function() { expect(0); });
+    module("bar");
+    test("bar.test", function() { expect(0); });
+    module("baz");
+    test("baz.test", function() { expect(0); });
+  </script>
+
+  <script>
+setTimeout(function() {
+$(function() {
+  $('#qunit-modulefilter').attr('multiple', true);
+  $('#toggle-module-dropdown').click(function() {
+    $('#module-dropdown').toggle();
+  });
+
+  $('#module-dropdown optgroup').click(function(e) {
+    if(this !== e.target) { return; }
+    var options = $(this).find('option');
+    if (e.metaKey) {
+      options.prop('selected', !options.first().is(':selected'));
+    } else {
+      options.toggle();
+    }
+  });
+});
+
+}, 100);
+  </script>
+  <a id="toggle-module-dropdown" href="#">Modules</a>
+  <div id="module-dropdown">
+    <select multiple id="qunit-modulefilter" name="modulefilter">
+      <optgroup label="Acceptance">
+        <option value= "Acceptance%20-%20Account%20dropdown%20%2F%20timezone%20%2F%20help%20icon"> Acceptance - Account dropdown / timezone / red icon</option>
+        <option value= "Acceptance%20-%20Account%20dropdown%20%2F%20timezone%20%2F%20help%20icon"> Acceptance - Account dropdown / timezone / green icon</option>
+      </optgroup>
+      <optgroup label="Unit">
+        <option value= "Unit%20-%20Account%20dropdown%20%2F%20timezone%20%2F%20help%20icon"> Unit - Account dropdown / timezone / orange icon</option>
+        <option value= "Unit%20-%20Account%20dropdown%20%2F%20timezone%20%2F%20help%20icon"> Unit - Account dropdown / timezone / apple  icon</option>
+      </optgroup>
+    </select>
+  </div>
+</body>
+</html>
