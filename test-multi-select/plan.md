@@ -8,4 +8,6 @@ Allowing for groups to be visible and toggled
   - [ ] tests
   - [ ] upstream
 
-- [ ] alternative UI
+- [ ] provide POC UI that updates URL
+- [ ] group in ember-apps based on type (acceptance/unit/integration etc)
+- [ ] use in ember
