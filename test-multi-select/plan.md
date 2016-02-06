@@ -11,3 +11,5 @@ Allowing for groups to be visible and toggled
 - [ ] provide POC UI that updates URL
 - [ ] group in ember-apps based on type (acceptance/unit/integration etc)
 - [ ] use in ember
+
+![Alt Text](https://github.com/stefanpenner/random/blob/master/test-multi-select/qunit-grouped-multiselect.gif)
