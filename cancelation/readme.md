@@ -92,7 +92,7 @@ Component.extend({
       this.marqueeLoop(this.untilDestroyed);
     },
 
-    marqueeLoop: async function(until) {
+    async marqueeLoop(until) {
       let text = this.get('text');
 
       while (true) {
