@@ -3,27 +3,29 @@ var Promise = require('rsvp').Promise;
 module.exports = CancelablePromise;
 
 function CancelablePromise(resolver, token, name) {
-
-  var cb;
-
-  function onCancel(_cb) {
-    cb = _cb;
-  }
-
+  var follower;
   Promise.call(this, function(resolve, reject) {
-    r = reject;
+    var cb;
+
+    function onCancel(_cb) {
+      cb = _cb;
+    }
+
+    follower = function follower(reason) {
+      reject(reason);
+      cb && cb();
+    };
+
+    token.follow(follower);
+
     resolver(resolve, reject, onCancel);
   }, name);
+
 
   var p = this;
 
   this.finally(function() {
-    t.untangle(p);
-  });
-
-  token.follow(function(reason) {
-    r(reason);
-    cb && cb();
+    t.unfollow(follower);
   });
 }
 
@@ -36,7 +38,7 @@ CancelablePromise.__proto__ = Promise;
 // CancelablePromise.all TODO: support cancellation
 
 function TokenSource() {
-  this.tokens = [];
+  this._token = new CancellationToken();
   this._isCanceled = false;
 }
 
@@ -61,21 +63,27 @@ TokenSource.prototype.cancel = function(reason) {
     return;
     // already canceled
   }
-  this.tokens.forEach(function(token) {
-    token._signalCancel(new CancellationError(reason));
+
+  this._isCanceled = true;
+  this._token._isCanceled = true;
+
+  var followers = this._token._followers;
+  this._token._followers = undefined;
+
+  followers.forEach(function(cancel) {
+    cancel(new CancellationError('cancelled yo'));
   });
 };
 
-TokenSource.prototype.token = function() {
-  var token = new CancellationToken(this._isCanceled);
-  this.tokens.push(token);
-  return token;
-};
+Object.defineProperty(TokenSource.prototype, 'token', {
+  get: function() {
+    return this._token;
+  }
+});
 
 CancelablePromise.TokenSource = TokenSource;
 
-function CancellationToken(isCanceled) {
-  this._isCanceled = !!isCanceled;
+function CancellationToken() {
   this._followers = [];
 }
 
@@ -84,17 +92,6 @@ Object.defineProperty(CancellationToken.prototype, 'isCanceled', {
     return this._isCanceled;
   }
 });
-
-CancellationToken.prototype._signalCancel = function() {
-  this._isCanceled = true;
-  if (Array.isArray(this._followers)) {
-      var followers = this._followers;
-      this._followers = [];
-      followers.forEach(function(cancel) {
-        cancel(new CancellationError('cancelled yo'));
-      });
-  }
-};
 
 CancellationToken.prototype.follow = function(cancel) {
   if (this._isCanceled) {
