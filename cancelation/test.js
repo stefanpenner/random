@@ -56,6 +56,7 @@ describe('CancellablePromise', function() {
 
       return result;
     });
+
     describe('resolve', function() {
       it('cancel before follow', function() {
         source.cancel();
