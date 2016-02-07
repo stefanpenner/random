@@ -61,11 +61,13 @@ Component.reopen({
 
 // once example;
 Component.extend({
-    keepFresh() {
-        this.get('model').reload(this.untilDestroyed).then(_ => this.keepFresh());
+    keepFresh(until) {
+        this.get('model').reload(until).then(_ => this.keepFresh());
     },
+
     didInsertElement() {
       this._super(...arguments);
+      this.keepFresh(this.untilDestroyed);
     }
 });
 
