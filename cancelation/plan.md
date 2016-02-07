@@ -14,15 +14,12 @@ TODO:
 ## Token Based
 
 ```js
-
 let source = new tokensounrce();
 
 promisereturningfunction(args, source.token());
 otherreturningfunction(args, source.token());
 
-promise.resolve().then(undefined, udnefined, source.token()).finally(_ => { });
-
-source.cancel();
+source.cancel(); // races completions
 ```
 
 #### pros
