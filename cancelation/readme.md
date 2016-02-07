@@ -42,14 +42,15 @@ source.cancel(); // races completions
 
 ```js
 import WeakMap from 'ember-weak-map';
+import CancellablePromise, { TokenSource } from 'some-lib-...';
 
 const map = new WeakMap();
 Component.reopen({
   init() {
     this._super(...arguments).
-    let source = new CancelablePromise.TokenSource();
+    let source = new TokenSource();
     map.set(this, source);
-    this.untilDestroyed= new CancelablePromise.TokenSource();
+    this.untilDestroyed = source.token;
   },
 
   willDestroyElement() {
