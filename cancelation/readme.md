@@ -4,6 +4,7 @@ several high level concepts:
 * promise signal based
 * hybrid?
 
+
 TODO:
 
 - [ ] flesh out the examples
@@ -14,10 +15,10 @@ TODO:
 ## Token Based
 
 ```js
-let source = new tokensounrce();
+let source = new CancelablePromise.TokenSource();
 
-promisereturningfunction(args, source.token());
-otherreturningfunction(args, source.token());
+promisereturningfunction(args, source.token);
+otherreturningfunction(args, source.token);
 
 source.cancel(); // races completions
 ```
@@ -35,7 +36,67 @@ source.cancel(); // races completions
 * maybe in-ergonomic?
 * appear more complicated
 
-## Promise Signal Based
+
+## Ember example
+
+
+```js
+import WeakMap from 'ember-weak-map;
+
+const map = new WeakMap();
+Component.reopen({
+  init() {
+    this._super(...arguments).
+    let source = new CancelablePromise.TokenSource();
+    map.set(this, source);
+    this.untilDestroyed= new CancelablePromise.TokenSource();
+  },
+
+  willDestroyElement() {
+    this._super(...arguments);
+    map.get(this).cancel();
+  }
+});
+
+// once example;
+Component.extend({
+    keepFresh() {
+        this.get('model').reload(this.untilDestroyed).then(_ => this.keepFresh());
+    },
+    didInsertElement() {
+      this._super(...arguments);
+    }
+});
+
+// another example
+function timeout(time, token) {
+  return new CancelablePromise((resolve) => Ember.run.later(resove, time), token);
+}
+
+Component.extend({
+    willInsertElement() {
+      this._super(...arguments);
+
+      this.marqueeLoop(this.untilDestroyed);
+    },
+
+    marqueeLoop: async function(until) {
+      let text = this.get('text');
+
+      while (true) {
+        this.set('formattedText', text);
+        await timeout(1500, until);
+        for (let i = 0; i < text.length; ++i) {
+          this.set('formattedText', capitalizeAt(text, i));
+          await timeout(50, until);
+        }
+      }
+  })
+})
+
+```
+
+## Other ideas Promise Signal Based
 
 
 ```js
