@@ -102,7 +102,6 @@ Component.extend({
       }
   })
 })
-
 ```
 
 ## Other ideas Promise Signal Based
@@ -120,3 +119,15 @@ p1.cancel();
 p2.cancel();
 p3.cancel();
 ```
+
+Pro:
+
+* easy api
+
+Con:
+
+* consumers can very easily interfere with each other
+* ...
+
+Potential solution, is to allow someone to op-into this...
+
