@@ -41,7 +41,7 @@ source.cancel(); // races completions
 
 
 ```js
-import WeakMap from 'ember-weak-map;
+import WeakMap from 'ember-weak-map';
 
 const map = new WeakMap();
 Component.reopen({
