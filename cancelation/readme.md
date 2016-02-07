@@ -107,6 +107,44 @@ Component.extend({
 })
 ```
 
+Example 3:
+
+```js
+function setInterval(cb, time, token) {
+  const pid = setInterval(cb);
+  token.follow(_ => cancelInterval(pid));
+}
+
+Component.extend({
+    willInsertElement() {
+      this._super(...arguments);
+
+      setInterval(_ => this.reload(), 500, this.untilDestroyed);
+    }
+  })
+})
+```
+
+Example 4:
+
+```js
+function raf(cb, token) {
+  let pid = requestAnimationFrame(_ => pid = requestAnimationFrame(cb));
+
+  token.follow(_ => cancelAnimationFrame(pid));
+}
+
+Component.extend({
+    willInsertElement() {
+      this._super(...arguments);
+
+      raf(_ => this.reload(), this.untilDestroyed);
+    }
+  })
+})
+```
+
+
 ## Other ideas Promise Signal Based
 
 
