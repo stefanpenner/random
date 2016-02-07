@@ -3,39 +3,75 @@ var Promise = require('rsvp').Promise;
 module.exports = CancelablePromise;
 
 function CancelablePromise(resolver, token, name) {
-  var follower;
-  Promise.call(this, function(resolve, reject) {
-    var cb;
 
-    function onCancel(_cb) {
-      cb = _cb;
-    }
+  if (token && typeof token !== 'string') {
+    var follower;
+    Promise.call(this, function(resolve, reject) {
+      var cb;
 
-    follower = function follower(reason) {
-      reject(reason);
-      cb && cb();
-    };
+      function onCancel(_cb) {
+        cb = _cb;
+      }
 
-    token.follow(follower);
+      follower = function follower(reason) {
+        reject(reason);
+        cb && cb();
+      };
 
-    resolver(resolve, reject, onCancel);
-  }, name);
+      token.follow(follower);
+
+      resolver(resolve, reject, onCancel);
+    }, name);
 
 
-  var p = this;
+    var p = this;
 
-  this.finally(function() {
-    t.unfollow(follower);
-  });
+    this.finally(function() {
+      t.unfollow(follower);
+    });
+  } else {
+    return Promise.apply(this, arguments);
+  }
 }
 
-CancelablePromise.prototype = Object.create(Promise.prototype);
 CancelablePromise.__proto__ = Promise;
+CancelablePromise.resolve = function(value, token, label) {
+  if (arguments.length > 1 && typeof token === 'string') {
+    return Promise.resolve.call(this, value, label);
+  } else {
+    return new CancelablePromise(function(resolve) {
+      resolve(value);
+    }, token, label);
+  }
+};
 
-// CancelablePromise.prototype.then TODO: support cancellation
-// CancelablePromise.resolve TODO: support cancellation
-// CancelablePromise.reject TODO: support cancellation
-// CancelablePromise.all TODO: support cancellation
+CancelablePromise.prototype = Object.create(Promise.prototype);
+CancelablePromise.prototype.constructor = CancelablePromise;
+CancelablePromise.prototype.then = function(onFulfillment, onRejection, token, label) {
+  if (token && typeof token !== 'string') {
+    return this.constructor.resolve(this, token, label).then(onFulfillment, onRejection);
+  } else {
+    return Promise.prototype.then.apply(this, arguments);
+  }
+};
+
+CancelablePromise.prototype.catch = function(onFulfillment, token, label) {
+  if (token && typeof token !== 'string') {
+    return this.constructor.resolve(this, token, label).then(undefined, onRejection);
+  } else {
+    return Promise.prototype.catch.apply(this, arguments);
+  }
+};
+
+CancelablePromise.prototype.finally = function(callback, token, label) {
+  if (token && typeof token !== 'string') {
+    return this.constructor.resolve(this, token, label).finally(callback, label);
+  } else {
+    return Promise.prototype.catch.apply(this, arguments);
+  }
+};
+
+CancelablePromise.__proto__ = Promise;
 
 function TokenSource() {
   this._token = new CancellationToken();
