@@ -21,7 +21,7 @@ function CancelablePromise(resolver, token, name) {
     t.untangle(p);
   });
 
-  token.entangle(this, function(reason) {
+  token.follow(function(reason) {
     r(reason);
     cb && cb();
   });
@@ -35,14 +35,14 @@ CancelablePromise.__proto__ = Promise;
 // CancelablePromise.reject TODO: support cancellation
 // CancelablePromise.all TODO: support cancellation
 
-function CancelationToken() {
-  this.entangled = [];
+function TokenSource() {
+  this.tokens = [];
   this._isCanceled = false;
 }
 
 // throw if cancelled
 
-Object.defineProperty(CancelationToken.prototype, 'isCanceled', {
+Object.defineProperty(TokenSource.prototype, 'isCanceled', {
   get: function() {
     return this._isCanceled;
   }
@@ -56,45 +56,50 @@ function CancellationError(reason) {
 
 CancellationError.prototype = Object.create(Error.prototype);
 
-CancelationToken.prototype.cancel = function(reason) {
-  this.entangled.forEach(function(task) {
-    task.onCancel(new CancellationError(reason));
+TokenSource.prototype.cancel = function(reason) {
+  if (this._isCanceled === true) {
+    return;
+    // already canceled
+  }
+  this.tokens.forEach(function(token) {
+    token._signalCancel(new CancellationError(reason));
   });
 };
 
-CancelationToken.prototype.entangle = function(promise, onCancel) {
-  this.entangled.push({
-    promise: promise,
-    onCancel: onCancel
-  });
+TokenSource.prototype.token = function() {
+  var token = new CancellationToken(this._isCanceled);
+  this.tokens.push(token);
+  return token;
 };
 
-CancelationToken.prototype.untangle = function(promise) {
-  var index = this.cancelations.indexOf(promise);
-  delete this.cancelations[index];
-};
+CancelablePromise.TokenSource = TokenSource;
 
-var token = new CancelationToken();
+function CancellationToken(isCanceled) {
+  this._isCanceled = !!isCanceled;
+  this._followers = [];
+}
 
-(new CancelablePromise(function(resolve, reject) {
-  setTimeout(function() {
-    resolve(1);
-  });
-}, token)).then(function(value) {
-  console.log('OMG', value);
-}, function(reason) {
-  console.log('rejected', reason.name, reason.message);
+Object.defineProperty(CancellationToken.prototype, 'isCanceled', {
+  get: function() {
+    return this._isCanceled;
+  }
 });
 
-(new CancelablePromise(function(resolve, reject) {
-  setTimeout(function() {
-    resolve(1);
-  });
-}, token)).then(function(value) {
-  console.log('OMG', value);
-}, function(reason) {
-  console.log('rejected', reason.name, reason.message);
-});
+CancellationToken.prototype._signalCancel = function() {
+  this._isCanceled = true;
+  if (Array.isArray(this._followers)) {
+      var followers = this._followers;
+      this._followers = [];
+      followers.forEach(function(cancel) {
+        cancel(new CancellationError('cancelled yo'));
+      });
+  }
+};
 
-token.cancel();
-
+CancellationToken.prototype.follow = function(cancel) {
+  if (this._isCanceled) {
+    cancel(new CancellationError('cancelled yo'));
+  } else {
+    this._followers.push(cancel);
+  }
+};
