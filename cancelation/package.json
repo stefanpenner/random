@@ -4,11 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test",
+    "test:debug": "mocha debug test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "rsvp": "^3.1.0"
+    "rsvp": "^3.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
   }
 }
