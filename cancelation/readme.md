@@ -40,6 +40,7 @@ source.cancel(); // races completions
 ## Ember example
 
 
+Given:
 ```js
 import WeakMap from 'ember-weak-map';
 import CancellablePromise, { TokenSource } from 'some-lib-...';
@@ -59,19 +60,24 @@ Component.reopen({
   }
 });
 
-// once example;
-Component.extend({
-    keepFresh(until) {
-        this.get('model').reload(until).then(_ => this.keepFresh());
-    },
+```
 
+Example 1:
+
+```js
+Component.extend({
+    keepFresh() {
+        this.get('model').reload(this.untilDestroyed).then(_ => this.keepFresh());
+    },
     didInsertElement() {
       this._super(...arguments);
-      this.keepFresh(this.untilDestroyed);
     }
 });
+```
 
-// another example
+Example 2:
+
+```js
 function timeout(time, token) {
   return new CancelablePromise((resolve) => Ember.run.later(resove, time), token);
 }
