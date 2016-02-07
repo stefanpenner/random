@@ -66,11 +66,14 @@ Example 1:
 
 ```js
 Component.extend({
-    keepFresh() {
-        this.get('model').reload(this.untilDestroyed).then(_ => this.keepFresh());
+    async keepFresh(until) {
+        await this.get('model').reload(until);
+        await this.keepFresh(until);
     },
+
     didInsertElement() {
       this._super(...arguments);
+      keepFresh(this.untilDestroyed);
     }
 });
 ```
