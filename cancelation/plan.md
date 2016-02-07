@@ -68,6 +68,10 @@ Component.extend({
 });
 
 // another example
+function timeout(time, token) {
+  return new CancelablePromise((resolve) => Ember.run.later(resove, time), token);
+}
+
 Component.extend({
     willInsertElement() {
       this._super(...arguments);
