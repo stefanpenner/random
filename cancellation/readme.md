@@ -21,7 +21,7 @@ TODO:
 ## Token Based
 
 ```js
-let source = new CancelablePromise.TokenSource();
+let source = new CancelablePromise.Token((cancel) => setTimeout(cancel, 10));
 
 promisereturningfunction(args, source.token);
 otherreturningfunction(args, source.token);
