@@ -6,21 +6,15 @@ function CancelablePromise(resolver, token, name) {
 
   if (token && typeof token !== 'string') {
     var follower;
+
     Promise.call(this, function(resolve, reject) {
-      var cb;
-
-      function onCancel(_cb) {
-        cb = _cb;
-      }
-
-      follower = function follower(reason) {
+      follower = function(reason) {
         reject(reason);
-        cb && cb();
       };
 
       token.follow(follower);
 
-      resolver(resolve, reject, onCancel);
+      resolver(resolve, reject);
     }, name);
 
 
@@ -73,33 +67,6 @@ CancelablePromise.prototype.finally = function(callback, token, label) {
 
 CancelablePromise.__proto__ = Promise;
 
-function TokenSource() {
-  this._token = new CancellationToken();
-  this._isCanceled = false;
-}
-
-// TODO: needs actual tests;
-TokenSource.join = function(tokens) {
-  var source = new this;
-
-  tokens.forEach(function(token) {
-    token.follow(function follower() {
-      tokens.forEach(function(token) {
-        source.cancel();
-        token.unfollow(folower);
-      });
-    });
-  });
-
-  return source.token;
-};
-
-
-Object.defineProperty(TokenSource.prototype, 'isCanceled', {
-  get: function() {
-    return this._isCanceled;
-  }
-});
 
 function CancellationError(reason) {
   this.name = 'CancellationError';
@@ -109,44 +76,64 @@ function CancellationError(reason) {
 
 CancellationError.prototype = Object.create(Error.prototype);
 
-TokenSource.prototype.cancel = function(reason) {
-  if (this._isCanceled === true) {
-    return;
-    // already canceled
-  }
-
-  this._isCanceled = true;
-  this._token._isCanceled = true;
-
-  var followers = this._token._followers;
-  this._token._followers = undefined;
-
-  followers.forEach(function(cancel) {
-    cancel(new CancellationError('cancelled yo'));
-  });
-};
-
-Object.defineProperty(TokenSource.prototype, 'token', {
-  get: function() {
-    return this._token;
-  }
-});
-
-CancelablePromise.TokenSource = TokenSource;
-
-function CancellationToken() {
+CancelablePromise.Token = Token;
+function Token(executor) {
+  this._isCanceled = false;
   this._followers = [];
+  this._reason = undefined;
+
+  if (typeof executor !== 'function') {
+    throw new TypeError('Token exeuctor must be a function');
+  }
+
+  var token = this;
+
+  executor(function cancel(reason) {
+    if (token._isCanceled === true) {
+      return;
+      // already canceled
+    }
+
+    token._reason = reason;
+    token._isCanceled = true;
+
+    var followers = token._followers;
+    token._followers = undefined;
+
+    followers.forEach(function(cancel) {
+      cancel(new CancellationError('cancelled yo'));
+    });
+  });
 }
 
-Object.defineProperty(CancellationToken.prototype, 'isCanceled', {
+// TODO: needs actual tests;
+Token.join = function(tokens) {
+  var cancel;
+  var token = new this(function(_cancel) { cancel = _cancel; });;
+
+  tokens.forEach(function(token) {
+    token.follow(function follower() {
+      tokens.forEach(function(token) {
+        cancel();
+        token.unfollow(folower);
+      });
+    });
+  });
+
+  return token;
+};
+
+
+Token.prototype.constructor = Token;
+Object.defineProperty(Token.prototype, 'isCanceled', {
   get: function() {
     return this._isCanceled;
   }
 });
 
-CancellationToken.prototype.follow = function(cancel) {
+Token.prototype.follow = function(cancel) {
   if (this._isCanceled) {
-    cancel(new CancellationError('cancelled yo'));
+    cancel(new CancellationError(this._reason));
   } else {
     this._followers.push(cancel);
   }

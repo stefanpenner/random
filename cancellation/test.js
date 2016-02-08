@@ -1,5 +1,6 @@
 var expect = require('chai').expect;
 var CancellablePromise = require('./');
+var CancellationToken = require('./').Token;
 var RSVP = require('rsvp');
 
 function noop() { }
@@ -14,67 +15,63 @@ function expectedCancellation(reason) {
 }
 
 describe('CancellablePromise Constructor', function() {
-  describe('basic cancellation', function() {
-    var source;
+  var cancel, token;
 
-    beforeEach(function() {
-      source = new CancellablePromise.TokenSource();
+  beforeEach(function() {
+    token = new CancellationToken(function(_cancel) {
+      cancel = _cancel
     });
+  });
 
+  describe('basic cancellation', function() {
     it('cancel before follow', function() {
-      source.cancel();
+      cancel();
 
-      var promise = new CancellablePromise(noop, source.token);
+      var promise = new CancellablePromise(noop, token);
 
       return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
     });
 
     it('cancel after follow', function() {
-      var promise = new CancellablePromise(noop, source.token);
+      var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
 
-      source.cancel();
+      cancel();
 
       return result;
     });
   });
 
   describe('unfollow before cancel', function() {
-    var source;
-
-    beforeEach(function() {
-      source = new CancellablePromise.TokenSource();
-    });
-
     it('cancel after follow', function() {
-      var promise = new CancellablePromise(noop, source.token);
+      var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
 
-      source.cancel();
+      cancel();
 
       return result;
     });
 
     describe('resolve', function() {
       it('cancel before follow', function() {
-        source.cancel();
+        cancel();
 
         var promise = new CancellablePromise(function(resolve) {
           resolve();
-        }, source.token);
+        }, token);
 
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
       it('cancel before follow (lazy resolve)', function() {
-        source.cancel();
+        cancel();
 
         var lazyResolve;
         var promise = new CancellablePromise(function(resolve) {
           lazyResolve = resolve;
-        }, source.token);
+        }, token);
 
         return RSVP.Promise.resolve().then(function() {
           lazyResolve();
@@ -86,22 +83,22 @@ describe('CancellablePromise Constructor', function() {
 
     describe('reject', function() {
       it('cancel before follow', function() {
-        source.cancel();
+        cancel();
 
         var promise = new CancellablePromise(function(resolve, reject) {
           reject();
-        }, source.token);
+        }, token);
 
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
       it('cancel before follow (lazy resolve)', function() {
-        source.cancel();
+        cancel();
 
         var lazyReject;
         var promise = new CancellablePromise(function(resolve, reject) {
           lazyReject = reject;
-        }, source.token);
+        }, token);
 
         return RSVP.Promise.resolve().then(function() {
           lazyReject();
@@ -114,66 +111,61 @@ describe('CancellablePromise Constructor', function() {
 });
 
 describe('CancellablePromise then', function() {
-  describe('basic cancellation', function() {
-    var source;
+  var token, cancel;
 
-    beforeEach(function() {
-      source = new CancellablePromise.TokenSource();
-    });
+  beforeEach(function() {
+    token = new CancellationToken(function(_cancel) { cancel = _cancel; });
+  });
+
+  describe('basic cancellation', function() {
 
     it('cancel before follow', function() {
-      source.cancel();
+      cancel();
 
       return CancellablePromise.resolve().
-        then(undefined, undefined, source.token).
+        then(undefined, undefined, token).
         then(expectedRejectionNotFulfillment, expectedCancellation);
     });
 
     it('cancel after follow (already resolved)', function() {
       var promise = new CancellablePromise.resolve();
 
-      source.cancel();
+      cancel();
 
-      return promise.then(undefined, undefined, source.token).
+      return promise.then(undefined, undefined, token).
         then(expectedRejectionNotFulfillment, expectedCancellation);
     });
   });
 
   describe('unfollow before cancel', function() {
-    var source;
-
-    beforeEach(function() {
-      source = new CancellablePromise.TokenSource();
-    });
-
     it('cancel after follow', function() {
-      var promise = new CancellablePromise(noop, source.token);
+      var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
 
-      source.cancel();
+      cancel();
 
       return result;
     });
 
     describe('resolve', function() {
       it('cancel before follow', function() {
-        source.cancel();
+        cancel();
 
         var promise = new CancellablePromise(function(resolve) {
           resolve();
-        }, source.token);
+        }, token);
 
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
       it('cancel before follow (lazy resolve)', function() {
-        source.cancel();
+        cancel();
 
         var lazyResolve;
         var promise = new CancellablePromise(function(resolve) {
           lazyResolve = resolve;
-        }, source.token);
+        }, token);
 
         return RSVP.Promise.resolve().then(function() {
           lazyResolve();
@@ -185,22 +177,22 @@ describe('CancellablePromise then', function() {
 
     describe('reject', function() {
       it('cancel before follow', function() {
-        source.cancel();
+        cancel();
 
         var promise = new CancellablePromise(function(resolve, reject) {
           reject();
-        }, source.token);
+        }, token);
 
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
       it('cancel before follow (lazy resolve)', function() {
-        source.cancel();
+        cancel();
 
         var lazyReject;
         var promise = new CancellablePromise(function(resolve, reject) {
           lazyReject = reject;
-        }, source.token);
+        }, token);
 
         return RSVP.Promise.resolve().then(function() {
           lazyReject();

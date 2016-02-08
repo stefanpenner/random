@@ -48,20 +48,18 @@ source.cancel(); // races completions
 Given:
 ```js
 import WeakMap from 'ember-weak-map';
-import CancellablePromise, { TokenSource } from 'some-lib-...';
+import CancellablePromise, { Toke } from 'some-lib-...';
 
 const map = new WeakMap();
 Component.reopen({
   init() {
     this._super(...arguments).
-    let source = new TokenSource();
-    map.set(this, source);
-    this.untilDestroyed = source.token;
+    this.untilDestroyed = new Token((cancel) => map.set(this, cancel));
   },
 
   willDestroyElement() {
     this._super(...arguments);
-    map.get(this).cancel();
+    map.get(this)();
   }
 });
 
@@ -154,7 +152,7 @@ Example 5:
 Combining multiple tokens
 
 ```js
-TokenSource.join([
+Token.join([
   this.untilDestroyed,
   this.untilStopReloading
 ]);
