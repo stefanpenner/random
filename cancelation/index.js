@@ -78,7 +78,22 @@ function TokenSource() {
   this._isCanceled = false;
 }
 
-// throw if cancelled
+// TODO: needs actual tests;
+TokenSource.join = function(tokens) {
+  var source = new this;
+
+  tokens.forEach(function(token) {
+    token.follow(function follower() {
+      tokens.forEach(function(token) {
+        source.cancel();
+        token.unfollow(folower);
+      });
+    });
+  });
+
+  return source.token;
+};
+
 
 Object.defineProperty(TokenSource.prototype, 'isCanceled', {
   get: function() {

@@ -144,6 +144,16 @@ Component.extend({
 })
 ```
 
+Example 5:
+
+Combining multiple tokens
+
+```js
+TokenSource.join([
+  this.untilDestroyed,
+  this.untilStopReloading
+]);
+```
 
 ## Other ideas Promise Signal Based
 
