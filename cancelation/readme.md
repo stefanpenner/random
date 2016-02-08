@@ -1,4 +1,4 @@
-# Token Based Cancelation
+# Token Based Cancellation
 
 several high level concepts:
 
