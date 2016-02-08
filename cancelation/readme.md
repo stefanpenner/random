@@ -1,5 +1,8 @@
 # Token Based Cancellation
 
+implementaiton: https://github.com/stefanpenner/random/blob/master/cancelation/index.js
+tests: https://github.com/stefanpenner/random/blob/master/cancelation/test.js
+
 several high level concepts:
 
 * token based
@@ -10,7 +13,6 @@ several high level concepts:
 
 
 * mean to work with todays promises, so it treats cancellations as exceptional, and causes rejections with a CancellationException
-
 
 TODO:
 
