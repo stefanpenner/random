@@ -49,7 +49,7 @@ source.cancel(); // races completions
 Given:
 ```js
 import WeakMap from 'ember-weak-map'; // use this to get private state, don't want the cancel leaking
-import CancellablePromise, { Toke } from 'some-lib-...';
+import CancellablePromise, { Token } from 'some-lib-...';
 
 const map = new WeakMap();
 Component.reopen({
