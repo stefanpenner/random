@@ -8,6 +8,7 @@ several high level concepts:
 * promise signal based
 * hybrid?
 
+has evolved to be fairly aligned with https://github.com/zenparsing/es-cancel-token (may continue to)
 
 TODO:
 
