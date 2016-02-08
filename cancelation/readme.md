@@ -9,6 +9,9 @@ several high level concepts:
 * hybrid?
 
 
+* mean to work with todays promises, so it treats cancellations as exceptional, and causes rejections with a CancellationException
+
+
 TODO:
 
 - [x] flesh out the examples
