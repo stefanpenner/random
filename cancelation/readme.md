@@ -3,16 +3,19 @@
 several high level concepts:
 
 * token based
+* cancel tasks (promises or other)
+
 * promise signal based
 * hybrid?
 
 
 TODO:
 
-- [ ] flesh out the examples
-- [ ] flesh out how signals work
-- [ ] real examples
-- [ ] examples for concrete issues
+- [x] flesh out the examples
+- [x] real examples
+- [-] examples for concrete issues
+- [ ] experiment with signals
+- [ ] ensure is performant
 
 ## Token Based
 
