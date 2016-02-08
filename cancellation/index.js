@@ -101,7 +101,7 @@ function Token(executor) {
     token._followers = undefined;
 
     followers.forEach(function(cancel) {
-      cancel(new CancellationError('cancelled yo'));
+      cancel(new CancellationError(reason));
     });
   });
 }
@@ -123,6 +123,11 @@ Token.join = function(tokens) {
   return token;
 };
 
+Token.prototype.throwIfRequested = function() {
+  if (this._isCanceled) {
+    throw new CancellationError(this._reason);
+  }
+};
 
 Token.prototype.constructor = Token;
 Object.defineProperty(Token.prototype, 'isCanceled', {
