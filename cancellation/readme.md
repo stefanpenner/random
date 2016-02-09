@@ -1,5 +1,7 @@
 # Token Based Cancellation (with promise integration)
 
+[tets](https://github.com/stefanpenner/random/blob/master/cancellation/test.js)
+[codez](https://github.com/stefanpenner/random/blob/master/cancellation/index.js)
 
 Token construction, the following token auto cancels in 10ms.
 
