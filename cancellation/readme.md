@@ -1,13 +1,27 @@
 # Token Based Cancellation (with promise integration)
 
+
+Token construction, the following token auto cancels in 10ms.
+
 ```js
 let source = new Token((cancel) => setTimeout(cancel, 10));
+```
 
-promisereturningfunction(args, token);
-otherreturningfunction(args, token);
+Any promise producing function takes an optional cancellation token as the last arge. Entangling the produced promise with the token, and cancellation if the token is cancelled.
+
+```js
+new Promise(resolve, token);
+
+Promise.all(iterable, token);
+Promise.race(iterable, token);
+
+promise.then(undefined, undefined, token);
+promise.catch(undefined, token);
 
 source.cancel(); // races completions
 ```
+
+Cancellation triggers synchronously, and in this prototype uses a CancellationError rejection. Although some experiments with a new completion type of cancellation are on-going. (Just not implemented here yet...)
 
 #### pros
 
@@ -22,9 +36,7 @@ source.cancel(); // races completions
 * maybe in-ergonomic?
 * appear more complicated
 
-
-## Ember example
-
+## UI example
 
 Given a UI Component with the following lifecycle hooks:
 
