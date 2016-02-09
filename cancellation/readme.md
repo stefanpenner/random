@@ -1,4 +1,4 @@
-# Token Based
+# Token Based Cancellation (with promise integration)
 
 ```js
 let source = new Token((cancel) => setTimeout(cancel, 10));
