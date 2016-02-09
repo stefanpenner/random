@@ -1,27 +1,7 @@
-# Token Based Cancellation
-
-several high level concepts:
-
-* token based
-* cancel tasks (promises or other)
-
-* promise signal based
-* hybrid?
-
-has evolved to be fairly aligned with https://github.com/zenparsing/es-cancel-token (may continue to)
-
-TODO:
-
-- [x] flesh out the examples
-- [x] real examples
-- [-] examples for concrete issues
-- [ ] experiment with signals
-- [ ] ensure is performant
-
-## Token Based
+# Token Based
 
 ```js
-let source = new CancelablePromise.Token((cancel) => setTimeout(cancel, 10));
+let source = new Token((cancel) => setTimeout(cancel, 10));
 
 promisereturningfunction(args, token);
 otherreturningfunction(args, token);
@@ -46,21 +26,29 @@ source.cancel(); // races completions
 ## Ember example
 
 
-Given:
+Given a UI Component with the following lifecycle hooks:
+
+1. init ( on initialization of the component)
+2. didInsertElement (on insert of the element)
+3. willDestroyElement (on destruction of the element)
+
 ```js
 import WeakMap from 'ember-weak-map'; // use this to get private state, don't want the cancel leaking
 import CancellablePromise, { Token } from 'some-lib-...';
 
 const map = new WeakMap();
+
 Component.reopen({
   init() {
-    this._super(...arguments).
+    this._super(...arguments);
+  
     this.untilDestroyed = new Token((cancel) => map.set(this, cancel));
   },
 
   willDestroyElement() {
     this._super(...arguments);
-    map.get(this)();
+    
+    map.get(this)(); // cancel the this.untilDestroyed token
   }
 });
 
@@ -68,15 +56,20 @@ Component.reopen({
 
 Example 1:
 
+Imagine a UI component, that continously reloads its data (likely fetching from a server).
+
 ```js
 Component.extend({
+
     async keepFresh(until) {
-        await this.get('model').reload(until);
+        await this.data.reload(until);
         await this.keepFresh(until);
     },
 
+    // when the element is inserted
     didInsertElement() {
       this._super(...arguments);
+      // begin reloading the data, but stop once the UI component is destroyed (using a token)
       keepFresh(this.untilDestroyed);
     }
 });
@@ -86,13 +79,16 @@ Example 2:
 
 ```js
 function timeout(time, token) {
-  return new CancelablePromise((resolve) => Ember.run.later(resove, time), token);
+  return new CancelablePromise((resolve) => setTimeout(resove, time), token);
 }
 
 Component.extend({
+
+    // when the component is inserted
     willInsertElement() {
       this._super(...arguments);
 
+      // begin UI animation, until the element is destroyed (using the untilDestroyed token)
       this.marqueeLoop(this.untilDestroyed);
     },
 
@@ -113,10 +109,12 @@ Component.extend({
 
 Example 3:
 
+token based termination of setInterval
+
 ```js
 function setInterval(cb, time, token) {
-  const pid = setInterval(cb);
-  token.follow(_ => cancelInterval(pid));
+  const pid = window.setInterval(cb);
+  token.follow(_ => window.cancelInterval(pid));
 }
 
 Component.extend({
@@ -131,11 +129,14 @@ Component.extend({
 
 Example 4:
 
-```js
-function raf(cb, token) {
-  let pid = requestAnimationFrame(_ => pid = requestAnimationFrame(cb));
+token based termination of requestAnimationFrame
 
-  token.follow(_ => cancelAnimationFrame(pid));
+```js
+
+function raf(cb, token) {
+  if (token.isCancelled) { return; }
+  
+  requestAnimationFrame(_ => raf(cb, token);
 }
 
 Component.extend({
@@ -159,30 +160,4 @@ Token.join([
 ]);
 ```
 
-## Other ideas Promise Signal Based
-
-
-```js
-let p1 = promisereturningfunction(args);
-let p2 = otherreturningfunction(args);
-
-let p3 = promise.resolve().then(undefined, udnefined)
-
-p3.finally(_ => { });
-
-p1.cancel();
-p2.cancel();
-p3.cancel();
-```
-
-Pro:
-
-* easy api
-
-Con:
-
-* consumers can very easily interfere with each other
-* ...
-
-Potential solution, is to allow someone to op-into this...
-
+## Further exploration of ergonomic solutions for 1:1
