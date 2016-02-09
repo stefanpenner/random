@@ -5,6 +5,8 @@
 * [tests](https://github.com/stefanpenner/random/blob/master/cancellation/test.js)
 * [codes](https://github.com/stefanpenner/random/blob/master/cancellation/index.js)
 
+---
+
 Token construction, the following token auto cancels in 10ms.
 
 ```js
