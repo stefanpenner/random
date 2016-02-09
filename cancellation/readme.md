@@ -179,3 +179,14 @@ Token.join([
 ```
 
 ## Further exploration of ergonomic solutions for 1:1
+
+# open questions
+
+
+* can async functions be cancelled form the outside without tokens? Like how generators work?
+* if so, should this by via a sort of implicit token?
+* can one opt out of such an implicit token?
+* are cancellation signals sync (in my example they are)
+* should cancellation signals transmit cancellation reasons?
+* should cancellations be rejections? What sort of rejection reason would they provide
+* are there some considerations to take now to ensure high performance?
