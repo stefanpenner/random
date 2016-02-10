@@ -16,7 +16,7 @@ Token construction, the following token auto cancels in 10ms.
 ```js
 let token = new Token((cancel) => setTimeout(cancel, 10));
 token.isCancelled // => true | false
-token.follow // pass a callback to be informed
+token.follow // pass a callback to be informe, NOTE: I don't really like the CB identiy thing, maybe a cookie like setTimeout returns..
 token.unfollow // pass a callback to de-register it
 ```
 
