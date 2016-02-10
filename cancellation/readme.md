@@ -7,6 +7,10 @@
 
 ---
 
+TL;DR a primitive for cooperative cancellation.
+
+### An example:
+
 Token construction, the following token auto cancels in 10ms.
 
 ```js
