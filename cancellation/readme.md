@@ -14,7 +14,10 @@ TL;DR a primitive for cooperative cancellation.
 Token construction, the following token auto cancels in 10ms.
 
 ```js
-let source = new Token((cancel) => setTimeout(cancel, 10));
+let token = new Token((cancel) => setTimeout(cancel, 10));
+token.isCancelled // => true | false
+token.follow // pass a callback to be informed
+token.unfollow // pass a callback to de-register it
 ```
 
 Any promise producing function takes an optional cancellation token as the last arge. Entangling the produced promise with the token, and cancellation if the token is cancelled.
