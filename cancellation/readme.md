@@ -128,6 +128,9 @@ Component.extend({
           await timeout(50, until);
         }
       }
+      
+      this.marqueeLoop(this.untilDestroyed);
+
   })
 })
 ```
