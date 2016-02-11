@@ -1,0 +1,18 @@
+{
+  "name": "cleanup-on-restart-tmpdir",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "mktemp": "^0.4.0",
+    "mv": "^2.1.1",
+    "rimraf": "^2.5.1",
+    "rsvp": "^3.2.1"
+  }
+}
