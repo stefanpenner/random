@@ -113,8 +113,9 @@ Token.join = function(tokens) {
 
   tokens.forEach(function(token) {
     token.follow(function follower() {
+      cancel();
+
       tokens.forEach(function(token) {
-        cancel();
         token.unfollow(folower);
       });
     });
