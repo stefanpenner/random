@@ -34,12 +34,12 @@ mouseDrags(document.body).subscribe({
 
 // also poll from some foreign source;
 poll(async () => {
-  let data = await ajax(url, token);
+  let data = await ajax(url, untilRemoved);
 
-  await timeout(1000, token);
+  await timeout(1000, untilRemoved);
 
   state.updateDataFromServer(data);
-}, token);
+}, untilRemoved);
 ```
 
 potential implementations for the the above functions
