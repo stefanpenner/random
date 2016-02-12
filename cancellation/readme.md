@@ -1,4 +1,4 @@
-# Token Based Cancellation (with promise integration)
+# Token Based Cancellation
 
 ---
 
@@ -7,18 +7,108 @@
 
 ---
 
-TL;DR a primitive for cooperative cancellation.
+TL;DR a way to potentially unify all forms of cancellation.
 
 ### An example:
 
-Token construction, the following token auto cancels in 10ms.
+Token construction example, the following token auto cancels in 10ms.
 
 ```js
-let token = new Token((cancel) => setTimeout(cancel, 10));
-token.isCancelled // => true | false
-token.follow // pass a callback to be informe, NOTE: I don't really like the CB identiy thing, maybe a cookie like setTimeout returns..
-token.unfollow // pass a callback to de-register it
+let untilRemoved = new Token((cancel) => uiComponent.on('remove', cancel))
+
+let state = /* some plot device */
+
+animate(function() {
+  render(state);
+}, untilRemoved);
+
+mouseDrags(document.body).subscribe({
+  next(e) { state.mouseWasDragged(e); }
+}, untilRemoved);
+
+poll(async () => {
+  let data = await ajax(url, token);
+
+  state.updateDataFromServer(data);
+}, token);
 ```
+
+implementations for the the above things
+
+#### requestAnimationFrame
+
+```
+animate(() => {
+  // animate something, but only until the token is revoked
+}, token);
+```
+
+```
+function animate(cb, token) {
+  if (token.isCancelled) { return; }
+
+  requestAnimationFrame(function() {
+    raf(cb, token);
+    cb();
+  });
+}
+```
+
+### timeout
+
+currently we do (which is more or less fine):
+
+```
+let cookie = setTimeout(cb, time);
+
+// then something wants to clear the timeout
+
+clearTimeout(cookie);
+```
+
+With tokens one could associate a given timeout with a token
+
+```
+timeout(cb, time, token);
+
+// the timeout will be cleared when the token is revoked
+```
+
+a potential user-land implementation of a token based setTimeout
+
+```
+functions timeout(cb, time, token) {
+  if (token.isCancelled) { return; }
+
+  let cookie = setTimeout(_ => {
+    token.unfollow(follower);
+    cb();
+  }, time);
+
+  function follower() {
+    return clearTiemout(cookie)
+  }
+
+  token.follow(follower);
+}
+```
+
+### Observable
+
+currently:
+
+```
+let subscription = observable.subscribe()
+subscription.unsubscribe();
+```
+
+with tokens:
+
+```
+observable.subscribe(token)
+```
+
+### Promises
 
 Any promise producing function takes an optional cancellation token as the last arge. Entangling the produced promise with the token, and cancellation if the token is cancelled.
 
@@ -66,13 +156,13 @@ const map = new WeakMap();
 Component.reopen({
   init() {
     this._super(...arguments);
-  
+
     this.untilDestroyed = new Token((cancel) => map.set(this, cancel));
   },
 
   willDestroyElement() {
     this._super(...arguments);
-    
+
     map.get(this)(); // cancel the this.untilDestroyed token
   }
 });
@@ -128,7 +218,7 @@ Component.extend({
           await timeout(50, until);
         }
       }
-      
+
       this.marqueeLoop(this.untilDestroyed);
 
   })
@@ -163,7 +253,7 @@ token based termination of requestAnimationFrame
 
 function raf(cb, token) {
   if (token.isCancelled) { return; }
-  
+
   requestAnimationFrame(_ => raf(cb, token);
 }
 
