@@ -17,14 +17,13 @@ function CancelablePromise(resolver, token, name) {
       resolver(resolve, reject);
     }, name);
 
-
-    var p = this;
+    var promise = this;
 
     this.finally(function() {
-      t.unfollow(follower);
+      promise.unfollow(follower);
     });
   } else {
-    return Promise.apply(this, arguments);
+    Promise.apply(this, arguments);
   }
 }
 
@@ -61,7 +60,7 @@ CancelablePromise.prototype.finally = function(callback, token, label) {
   if (token && typeof token !== 'string') {
     return this.constructor.resolve(this, token, label).finally(callback, label);
   } else {
-    return Promise.prototype.catch.apply(this, arguments);
+    return Promise.prototype.finally.apply(this, arguments);
   }
 };
 

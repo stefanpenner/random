@@ -43,6 +43,32 @@ describe('CancellablePromise Constructor', function() {
     });
   });
 
+  describe('unfollow after settling', function () {
+    it('never cancel, but fulfill', function() {
+      var expectedFulfillment = 'such resolve!'
+      var promise = new CancellablePromise(function(resolve) {
+        resolve(expectedFulfillment);
+      }, token);
+
+      return promise.then(function(value) {
+        expect(value).to.eql(expectedFulfillment);
+      });
+    });
+
+    it('never cancel, but reject', function() {
+      var expectedReason = 'such reason';
+      var promise = new CancellablePromise(function(resolve, reject) {
+         reject(expectedReason);
+      }, token);
+
+      return promise.then(function() {
+        expect(false).to.be.true;
+      }, function(reason) {
+        expect(reason).to.eql(expectedReason);
+      });
+    });
+  });
+
   describe('unfollow before cancel', function() {
     it('cancel after follow', function() {
       var promise = new CancellablePromise(noop, token);
