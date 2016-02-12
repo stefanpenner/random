@@ -1,4 +1,4 @@
-# Token Based Cancellation
+# Token Based Cancellation braindump
 
 ---
 
@@ -11,29 +11,38 @@ TL;DR a way to potentially unify all forms of cancellation.
 
 ### An example:
 
-Token construction example, the following token auto cancels in 10ms.
+Given a UI component, it will likely subscribe to events, poll data, and render animate.
+Using tokens provides a unified way to coordinate "disinterest" which may
+result in cancellations of various operations.
 
 ```js
-let untilRemoved = new Token((cancel) => uiComponent.on('remove', cancel))
+// create a token, which is revoked on the UIComponent will be removed
+let untilRemoved = new Token((cancel) => uiComponent.on('willRemove', cancel))
 
+// imagine our UI has some state
 let state = /* some plot device */
 
+// animate state, using requestAnimationFrame
 animate(function() {
   render(state);
 }, untilRemoved);
 
+// subscribe to user changes
 mouseDrags(document.body).subscribe({
   next(e) { state.mouseWasDragged(e); }
 }, untilRemoved);
 
+// also poll from some foreign source;
 poll(async () => {
   let data = await ajax(url, token);
+
+  await timeout(1000, token);
 
   state.updateDataFromServer(data);
 }, token);
 ```
 
-implementations for the the above things
+potential implementations for the the above functions
 
 #### requestAnimationFrame
 
@@ -81,15 +90,15 @@ functions timeout(cb, time, token) {
   if (token.isCancelled) { return; }
 
   let cookie = setTimeout(_ => {
-    token.unfollow(follower);
+    token.unregister(registration);
     cb();
   }, time);
 
-  function follower() {
+  function registration() {
     return clearTiemout(cookie)
   }
 
-  token.follow(follower);
+  token.register(registration);
 }
 ```
 
@@ -232,7 +241,7 @@ token based termination of setInterval
 ```js
 function setInterval(cb, time, token) {
   const pid = window.setInterval(cb);
-  token.follow(_ => window.cancelInterval(pid));
+  token.register(_ => window.cancelInterval(pid));
 }
 
 Component.extend({

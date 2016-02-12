@@ -24,7 +24,7 @@ describe('CancellablePromise Constructor', function() {
   });
 
   describe('basic cancellation', function() {
-    it('cancel before follow', function() {
+    it('cancel before register', function() {
       cancel();
 
       var promise = new CancellablePromise(noop, token);
@@ -32,7 +32,7 @@ describe('CancellablePromise Constructor', function() {
       return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
     });
 
-    it('cancel after follow', function() {
+    it('cancel after register', function() {
       var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
@@ -43,7 +43,7 @@ describe('CancellablePromise Constructor', function() {
     });
   });
 
-  describe('unfollow after settling', function () {
+  describe('unregister after settling', function () {
     it('never cancel, but fulfill', function() {
       var expectedFulfillment = 'such resolve!'
       var promise = new CancellablePromise(function(resolve) {
@@ -69,8 +69,8 @@ describe('CancellablePromise Constructor', function() {
     });
   });
 
-  describe('unfollow before cancel', function() {
-    it('cancel after follow', function() {
+  describe('unregister before cancel', function() {
+    it('cancel after register', function() {
       var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
@@ -81,7 +81,7 @@ describe('CancellablePromise Constructor', function() {
     });
 
     describe('resolve', function() {
-      it('cancel before follow', function() {
+      it('cancel before register', function() {
         cancel();
 
         var promise = new CancellablePromise(function(resolve) {
@@ -91,7 +91,7 @@ describe('CancellablePromise Constructor', function() {
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
-      it('cancel before follow (lazy resolve)', function() {
+      it('cancel before register (lazy resolve)', function() {
         cancel();
 
         var lazyResolve;
@@ -108,7 +108,7 @@ describe('CancellablePromise Constructor', function() {
     });
 
     describe('reject', function() {
-      it('cancel before follow', function() {
+      it('cancel before register', function() {
         cancel();
 
         var promise = new CancellablePromise(function(resolve, reject) {
@@ -118,7 +118,7 @@ describe('CancellablePromise Constructor', function() {
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
-      it('cancel before follow (lazy resolve)', function() {
+      it('cancel before register (lazy resolve)', function() {
         cancel();
 
         var lazyReject;
@@ -145,7 +145,7 @@ describe('CancellablePromise then', function() {
 
   describe('basic cancellation', function() {
 
-    it('cancel before follow', function() {
+    it('cancel before register', function() {
       cancel();
 
       return CancellablePromise.resolve().
@@ -153,7 +153,7 @@ describe('CancellablePromise then', function() {
         then(expectedRejectionNotFulfillment, expectedCancellation);
     });
 
-    it('cancel after follow (already resolved)', function() {
+    it('cancel after register (already resolved)', function() {
       var promise = new CancellablePromise.resolve();
 
       cancel();
@@ -163,8 +163,8 @@ describe('CancellablePromise then', function() {
     });
   });
 
-  describe('unfollow before cancel', function() {
-    it('cancel after follow', function() {
+  describe('unregister before cancel', function() {
+    it('cancel after register', function() {
       var promise = new CancellablePromise(noop, token);
 
       var result = promise.then(expectedRejectionNotFulfillment, expectedCancellation);
@@ -175,7 +175,7 @@ describe('CancellablePromise then', function() {
     });
 
     describe('resolve', function() {
-      it('cancel before follow', function() {
+      it('cancel before register', function() {
         cancel();
 
         var promise = new CancellablePromise(function(resolve) {
@@ -185,7 +185,7 @@ describe('CancellablePromise then', function() {
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
-      it('cancel before follow (lazy resolve)', function() {
+      it('cancel before register (lazy resolve)', function() {
         cancel();
 
         var lazyResolve;
@@ -202,7 +202,7 @@ describe('CancellablePromise then', function() {
     });
 
     describe('reject', function() {
-      it('cancel before follow', function() {
+      it('cancel before register', function() {
         cancel();
 
         var promise = new CancellablePromise(function(resolve, reject) {
@@ -212,7 +212,7 @@ describe('CancellablePromise then', function() {
         return promise.then(expectedRejectionNotFulfillment, expectedCancellation);
       });
 
-      it('cancel before follow (lazy resolve)', function() {
+      it('cancel before register (lazy resolve)', function() {
         cancel();
 
         var lazyReject;

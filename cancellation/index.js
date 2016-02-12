@@ -5,14 +5,14 @@ module.exports = CancelablePromise;
 function CancelablePromise(resolver, token, name) {
 
   if (token && typeof token !== 'string') {
-    var follower;
+    var registration;
 
     Promise.call(this, function(resolve, reject) {
-      follower = function(reason) {
+      registration = function(reason) {
         reject(reason);
       };
 
-      token.follow(follower);
+      token.register(registration);
 
       resolver(resolve, reject);
     }, name);
@@ -20,7 +20,7 @@ function CancelablePromise(resolver, token, name) {
     var promise = this;
 
     this.finally(function() {
-      promise.unfollow(follower);
+      promise.unregister(registration);
     });
   } else {
     Promise.apply(this, arguments);
@@ -78,7 +78,7 @@ CancellationError.prototype = Object.create(Error.prototype);
 CancelablePromise.Token = Token;
 function Token(executor) {
   this._isCanceled = false;
-  this._followers = [];
+  this._registrations = [];
   this._reason = undefined;
 
   if (typeof executor !== 'function') {
@@ -96,10 +96,10 @@ function Token(executor) {
     token._reason = reason;
     token._isCanceled = true;
 
-    var followers = token._followers;
-    token._followers = undefined;
+    var registrations = token._registrations;
+    token._registrations = undefined;
 
-    followers.forEach(function(cancel) {
+    registrations.forEach(function(cancel) {
       cancel(new CancellationError(reason));
     });
   });
@@ -111,11 +111,11 @@ Token.join = function(tokens) {
   var token = new this(function(_cancel) { cancel = _cancel; });;
 
   tokens.forEach(function(token) {
-    token.follow(function follower() {
+    token.register(function registration() {
       cancel();
 
       tokens.forEach(function(token) {
-        token.unfollow(folower);
+        token.unregister(folower);
       });
     });
   });
@@ -136,10 +136,10 @@ Object.defineProperty(Token.prototype, 'isCanceled', {
   }
 });
 
-Token.prototype.follow = function(cancel) {
+Token.prototype.register = function(cancel) {
   if (this._isCanceled) {
     cancel(new CancellationError(this._reason));
   } else {
-    this._followers.push(cancel);
+    this._registrations.push(cancel);
   }
 };
