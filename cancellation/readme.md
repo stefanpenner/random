@@ -9,7 +9,7 @@
 
 TL;DR a way to potentially unify all forms of cancellation.
 
-*NOTE: most of this ideas are stollen from others, this readme & associated code exists largely as a way for me to explore/share/document the ideas*
+*NOTE: most of this ideas are stollen from other, this readme & associated code exists largely as a way for me to explore/share/document the ideas*
 
 ### An example:
 
