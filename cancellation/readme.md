@@ -121,21 +121,36 @@ observable.subscribe(token)
 
 ### Promises
 
-Any promise producing function takes an optional cancellation token as the last arge. Entangling the produced promise with the token, and cancellation if the token is cancelled.
+Any promise producing function takes an optional cancellation token as the last
+arge. Entangling the produced promise with the token, and cancellation if the
+token is cancelled.
 
 ```js
 new Promise(resolve, token);
 
+Promise.resolve(promise, token);
 Promise.all(iterable, token);
 Promise.race(iterable, token);
 
 promise.then(undefined, undefined, token);
 promise.catch(undefined, token);
 
-source.cancel(); // races completions
+cancel(); // races completions
 ```
 
-Cancellation triggers synchronously, and in this prototype uses a CancellationError rejection. Although some experiments with a new completion type of cancellation are on-going. (Just not implemented here yet...)
+Cancellation triggers synchronously, and in this prototype uses a
+CancellationError rejection. Although some experiments with a new completion
+type of cancellation are on-going. (Just not implemented here yet...)
+
+why may `then` and `resolve` need to be token aware? Well, given `Promise.all`
+like behavior of for each input promise doing.
+
+```js
+Promise.resolve(input).then(something, somethingElse);
+```
+
+both the `resolve` and the `then` may be the source of the subscription we will
+likely want to disconnect.
 
 #### pros
 
