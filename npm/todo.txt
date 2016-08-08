@@ -1,0 +1,9 @@
+- [ ] patch require
+  - consult a MAP to find location for a module
+  - whitelist of "global" aka SYSTEM provided
+- [x] new on-disk placement
+  ~/.npm/local/package@version/
+- [x] downloader
+- [ ] download all deps
+- [ ] sync all deps
+- [ ] cache eviction / dirty checking, but offline must work.
