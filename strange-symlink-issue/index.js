@@ -8,7 +8,7 @@ function symlinkSync(target, path) {
 
 var originalSymlinkSync = fs.symlinkSync;
 
-// uncomment to make fail in Bash on Ubuntu on Windows
+// uncomment to make pass in Bash on Ubuntu on Windows
 // fs.symlinkSync = function(source, target, options) {
 //   originalSymlinkSync.call(fs, source.replace(/\/$/g,''), target, options);
 // }
