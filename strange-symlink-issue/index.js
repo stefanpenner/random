@@ -6,6 +6,13 @@ function symlinkSync(target, path) {
   fs.symlinkSync(target, path);
 }
 
+var originalSymlinkSync = fs.symlinkSync;
+
+// uncomment to make fail in Bash on Ubuntu on Windows
+// fs.symlinkSync = function(source, target, options) {
+//   originalSymlinkSync.call(fs, source.replace(/\/$/g,''), target, options);
+// }
+
 rimraf.sync('out'); // setup
 fs.mkdirSync('out'); // cleanup
 
