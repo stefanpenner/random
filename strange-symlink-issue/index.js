@@ -12,8 +12,8 @@ fs.mkdirSync('out'); // cleanup
 fs.mkdirSync('out/foo');
 fs.writeFileSync('out/foo/bar.txt', 'hi');
 
-symlinkSync(fs.realpathSync('out/foo/') +'/', 'out/bar');
-symlinkSync(fs.realpathSync('out/bar/') +'/', 'out/baz');
+symlinkSync(fs.realpathSync('out/foo/'), 'out/bar');
+symlinkSync(fs.realpathSync('out/bar/') + '/', 'out/baz');
 
 console.log('out/foo/bar.txt', fs.readFileSync('out/foo/bar.txt', 'UTF8'));
 console.log('out/bar/bar.txt', fs.readFileSync('out/bar/bar.txt', 'UTF8'));
