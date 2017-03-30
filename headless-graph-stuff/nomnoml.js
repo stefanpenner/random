@@ -1,8 +1,9 @@
-const marked = require('marked');
+const nomdown = require('nomdown');
 const fs = require('fs');
 
 function nom(string) {
   let result ='```nomnoml\n';
+  result += '#fill: #eeeeee; #ffffff\n';
   result += string;
   result += '```\n';
   return result
@@ -12,6 +13,7 @@ let markdownString = "";
 
 markdownString += "# nomdown\n"
 markdownString += nom(`
+#fill: #eeeeee; #ffffff\n
 [<frame>Decorator pattern|
   [<abstract>Component||+ operation()]
   [Client] depends --> [Component]
@@ -23,8 +25,7 @@ markdownString += nom(`
 `);
 
 markdownString += '<hr>\n';
-markdownString += '```nomnoml\n';
-markdownString +=`
+markdownString += nom(`
 [Pirate|eyeCount: Int|raid();pillage()|
   [beard]--[parrot]
   [beard]-:>[foul mouth]
@@ -45,23 +46,10 @@ markdownString +=`
 [more loot] no ->[<end>e]
 
 [<actor>Sailor] - [<usecase>shiver me;timbers]
-`
-markdownString += '```\n';
+`);
 markdownString += '\n```js\nfunction foo() {\n  1+1;\n}\n```';
 markdownString += '\n### HELLO';
 markdownString += '\n\n * one\n * two\n * three\n';
-
-// Async highlighting with pygmentize-bundled
-marked.setOptions({
-  highlight(code, lang) {
-    if (lang === 'nomnoml') {
-      return require('nomnoml').renderSvg(code);
-    } else {
-      return require('highlight.js').highlightAuto(code).value;
-
-    }
-  }
-});
 
 const style = `
 .markdown-body {
@@ -178,7 +166,7 @@ ${fs.readFileSync(require.resolve('github-markdown-css'), 'UTF8')}
 }
 `;
 
-marked(markdownString, function (err, content) {
+nomdown(markdownString, function (err, content) {
   if (err) throw err;
   console.log(`<div class="markdown-body">${content}</div><style>${style}</style>`);
 });
