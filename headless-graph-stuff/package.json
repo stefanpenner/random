@@ -1,0 +1,17 @@
+{
+  "name": "headless-graph-stuff",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "d3-node": "^1.0.1",
+    "highlight.js": "^9.10.0",
+    "jsdom": "^9.12.0",
+    "markdown": "^0.5.0",
+    "mermaid": "^7.0.0",
+    "nomnoml": "^0.0.4",
+    "simple-dom": "^0.3.2",
+    "svg.js": "^2.5.1",
+    "svgdom": "^0.0.6"
+  }
+}

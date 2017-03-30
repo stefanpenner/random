@@ -1,0 +1,11 @@
+<pre><code class="lang-nomnoml"><svg version="1.1" baseProfile="full" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font-weight:bold; font-size:12pt; font-family:'Calibri', Helvetica, sans-serif;;stroke-width:3;stroke-linejoin:round;stroke-linecap:round"><text x="59.5" y="64.5" style="">is</text>
+<path d="M51.5 44.5 L51.5 64.5 L51.5 84.5 L51.5 84.5 " style="stroke:#33322E;fill:none;"></path>
+<path d="M46.2 71.2 L51.5 77.8 L56.8 71.2 L51.5 84.5 Z" style="stroke:#33322E;fill:#33322E;"></path>
+<rect x="13.5" y="13.5" height="31" width="76" style="stroke:#33322E;fill:#eee8d5;"></rect>
+<text x="21.8" y="35" style="">nomnoml</text>
+<rect x="13.5" y="84.5" height="31" width="76" style="stroke:#33322E;fill:#eee8d5;"></rect>
+<text x="21.8" y="106" style="">awesome</text></svg>
+</code></pre>
+<pre><code class="lang-js"> <span class="hljs-number">1</span>+<span class="hljs-number">1</span>
+</code></pre>
+

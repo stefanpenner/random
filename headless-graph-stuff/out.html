@@ -1,0 +1,184 @@
+<pre><code class="lang-nomnoml"><svg width="273.25" height="397" version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font-weight:bold; font-size:12pt; font-family:'Calibri', Helvetica, sans-serif;;stroke-width:3;stroke-linejoin:round;stroke-linecap:round"><rect x="13.5" y="13.5" height="371" width="247.25" style="stroke:#33322E;fill:#eee8d5;"></rect>
+<text x="21.5" y="35" style="">Decorator pattern</text>
+<path d="M13.5 44.5 L166 44.5 L181.5 29 L181.5 13.5" style="stroke:#33322E;fill:none;"></path>
+<text x="175.3" y="108.5" style="">depends</text>
+<path d="M167.3 88.5 L167.3 108.5 L167.3 128.5 L167.3 128.5 " style="stroke:#33322E;fill:none;"></path>
+<path d="M161.9 115.2 L167.3 121.8 L172.6 115.2 L167.3 128.5 Z" style="stroke:#33322E;fill:#33322E;"></path>
+<text x="115" y="320.5" style="">decorates</text>
+<path d="M107 300.5 L107 320.5 L140.9 340.5 L140.9 340.5 " style="stroke:#33322E;fill:none;"></path>
+<path d="M128.9 198.5 L107 218.5 L107 238.5 L107 238.5 " style="stroke:#33322E;fill:none;"></path>
+<path d="M122.7 211.4 L119.1 207.5 L115.5 203.6 L128.9 198.5 Z" style="stroke:#33322E;fill:#eee8d5;"></path>
+<path d="M205.6 198.5 L227.5 218.5 L227.5 320.5 L227.5 320.5 L193.6 340.5 L193.6 340.5 " style="stroke:#33322E;fill:none;"></path>
+<path d="M219 203.6 L215.4 207.5 L211.8 211.4 L205.6 198.5 Z" style="stroke:#33322E;fill:#eee8d5;"></path>
+<rect x="103.5" y="128.5" height="70" width="127" style="stroke:#33322E;fill:#fdf6e3;"></rect>
+<text x="128.8" y="150" style="">Component</text>
+<path d="M103.5 159.5 L230.5 159.5" style="stroke:#33322E;fill:none;"></path>
+<path d="M103.5 167.5 L230.5 167.5" style="stroke:#33322E;fill:none;"></path>
+<text x="111.5" y="189" style="">+ operation()</text>
+<rect x="133.5" y="57.5" height="31" width="67" style="stroke:#33322E;fill:#fdf6e3;"></rect>
+<text x="141.5" y="79" style="">Client</text>
+<rect x="26.5" y="238.5" height="62" width="161" style="stroke:#33322E;fill:#fdf6e3;"></rect>
+<text x="68.8" y="260" style="">Decorator</text>
+<path d="M26.5 269.5 L187.5 269.5" style="stroke:#33322E;fill:none;"></path>
+<text x="34.5" y="291" style="">- next: Component</text>
+<rect x="86.5" y="340.5" height="31" width="161" style="stroke:#33322E;fill:#fdf6e3;"></rect>
+<text x="94.8" y="362" style="">ConcreteComponent</text></svg>
+</code></pre>
+<pre><code class="lang-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-number">1</span>+<span class="hljs-number">1</span>;
+}
+</code></pre>
+<h3 id="hello">HELLO</h3>
+
+<style>
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+  pre code.lang-nomnoml svg {
+  }
+/*
+
+Original highlight.js style (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
+
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #F0F0F0;
+}
+
+
+/* Base color: saturation 0; */
+
+.hljs,
+.hljs-subst {
+  color: #444;
+}
+
+.hljs-comment {
+  color: #888888;
+}
+
+.hljs-keyword,
+.hljs-attribute,
+.hljs-selector-tag,
+.hljs-meta-keyword,
+.hljs-doctag,
+.hljs-name {
+  font-weight: bold;
+}
+
+
+/* User color: hue: 0 */
+
+.hljs-type,
+.hljs-string,
+.hljs-number,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-quote,
+.hljs-template-tag,
+.hljs-deletion {
+  color: #880000;
+}
+
+.hljs-title,
+.hljs-section {
+  color: #880000;
+  font-weight: bold;
+}
+
+.hljs-regexp,
+.hljs-symbol,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: #BC6060;
+}
+
+
+/* Language color: hue: 90; */
+
+.hljs-literal {
+  color: #78A960;
+}
+
+.hljs-built_in,
+.hljs-bullet,
+.hljs-code,
+.hljs-addition {
+  color: #397300;
+}
+
+
+/* Meta color: hue: 200 */
+
+.hljs-meta {
+  color: #1f7199;
+}
+
+.hljs-meta-string {
+  color: #4d99bf;
+}
+
+
+/* Misc effects */
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+</style>
+
