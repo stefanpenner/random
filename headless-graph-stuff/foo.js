@@ -140,6 +140,10 @@ Original highlight.js style (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
 }
 
 ${fs.readFileSync(require.resolve('github-markdown-css'), 'UTF8')}
+
+.markdown-body .highlight pre, .markdown-body pre {
+  background-color: transparent
+}
 `;
 
 marked(markdownString, function (err, content) {
