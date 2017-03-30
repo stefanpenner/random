@@ -1,9 +1,17 @@
 const marked = require('marked');
 const fs = require('fs');
 
-let markdownString = '```nomnoml\n';
+function nom(string) {
+  let result ='```nomnoml\n';
+  result += string;
+  result += '```\n';
+  return result
+}
 
-markdownString += `
+let markdownString = "";
+
+markdownString += "# nomdown\n"
+markdownString += nom(`
 [<frame>Decorator pattern|
   [<abstract>Component||+ operation()]
   [Client] depends --> [Component]
@@ -12,8 +20,32 @@ markdownString += `
   [Component] <:- [Decorator]
   [Component] <:- [ConcreteComponent]
 ]\n
-`;
+`);
 
+markdownString += '<hr>\n';
+markdownString += '```nomnoml\n';
+markdownString +=`
+[Pirate|eyeCount: Int|raid();pillage()|
+  [beard]--[parrot]
+  [beard]-:>[foul mouth]
+]
+
+[<abstract>Marauder]<:--[Pirate]
+[Pirate]- 0..7[mischief]
+[jollyness]->[Pirate]
+[jollyness]->[rum]
+[jollyness]->[singing]
+[Pirate]-> *[rum|tastiness: Int|swig()]
+[Pirate]->[singing]
+[singing]<->[rum]
+
+[<start>st]->[<state>plunder]
+[plunder]->[<choice>more loot]
+[more loot]->[st]
+[more loot] no ->[<end>e]
+
+[<actor>Sailor] - [<usecase>shiver me;timbers]
+`
 markdownString += '```\n';
 markdownString += '\n```js\nfunction foo() {\n  1+1;\n}\n```';
 markdownString += '\n### HELLO';
