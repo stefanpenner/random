@@ -9,6 +9,8 @@ const PARSED = new WeakMap();
 const NODES = new WeakMap();
 const EDGES = new WeakMap();
 const NODE_INDEX_BY_DEPARTING_EDGE_INDEX = new WeakMap();
+const IN_EDGES = new WeakMap();
+const OUT_EDGES = new WeakMap();
 
 class Heapsnapshot {
   constructor(parsed) {
@@ -45,6 +47,7 @@ class Heapsnapshot {
     NODES.set(this, Object.create(null));
     EDGES.set(this, Object.create(null));
     NODE_INDEX_BY_DEPARTING_EDGE_INDEX.set(this, Object.create(null));
+    IN_EDGES.set(this, Object.create(null));
   }
 
   summary() {
@@ -87,6 +90,13 @@ class Heapsnapshot {
       edges[i] = this._createEdge(i);
       yield;
     }
+
+    let in_edges = IN_EDGES.get(this);
+    Object.keys(edges).forEach(i => {
+      let edge = edges[i];
+      in_edges[edge.to_index] = in_edges[edge.to_index] || [];
+      in_edges[edge.to_index].push(edge);
+    });
   }
 
   * nodeIterator() {
@@ -119,6 +129,22 @@ class Heapsnapshot {
     let from_index = NODE_INDEX_BY_DEPARTING_EDGE_INDEX.get(this)[index];
 
     return new Edge(this, type, name_org_index, from_index, to_index);
+  }
+
+  inEdgesFor(node) {
+    return IN_EDGES.get(this)[node.index] || [];
+  }
+
+  outEdgesFor(node) {
+    let result = OUT_EDGES.get(node);
+    if (result) { return result; }
+    let all = PARSED.get(this).edges;
+    let edges = [];
+    for (let i = node.edge_start; i < node.edge_end; i += this.EDGE_SIZE) {
+      edges.push(this.edgeForIndex(i));
+    }
+    OUT_EDGES.set(node, edges);
+    return edges;
   }
 
   _createNode(index) {
@@ -197,7 +223,6 @@ class Node {
     this.edge_count = edge_count;
     this.trace_node_id = this.trace_node_id;
     this.edge_start = - 1;
-    this._edges = undefined;
     this._snapshot = snapshot;
   }
 
@@ -205,56 +230,55 @@ class Node {
     return this.edge_start + this.edge_count * this._snapshot.EDGE_SIZE;
   }
 
-  get edges() {
-    if (this._edges === undefined) {
-      let all = PARSED.get(this._snapshot).edges;
-      let edges = [];
-      for (let i = this.edge_start; i < this.edge_end; i += this._snapshot.EDGE_SIZE) {
-        edges.push(this._snapshot.edgeForIndex(i));
-      }
+  get in() {
+    return this._snapshot.inEdgesFor(this);
+  }
 
-      this._edges = edges;
-    }
-
-    return this._edges;
+  get out() {
+    return this._snapshot.outEdgesFor(this);
   }
 
   toString() {
-    return `<node: ${this.index} >`
+    return `<${this.name || '(unknown node)'}:${this.index}>`
   }
 }
 
-const snapshot = Heapsnapshot.fromFileSync('./small.heapsnapshot');
+console.log('reading');
+const snapshot = Heapsnapshot.fromFileSync('./container.heapsnapshot');
 
 // build
+console.log('building');
 for (let _ of snapshot.build()) { }
 
+console.log('all')
 let all = [...snapshot.nodeIterator()];
-let allEdges = [...snapshot.edgeIterator()];
+// let allEdges = [...snapshot.edgeIterator()];
 
-let apple = all.find(x => x.name === 'apple');
-let self = all.find(x => x.name === 'self');
-// let root = allEdges.filter(x => x.to === apple)[0].from;
+console.log('searching...')
+let containers = all.filter(x => x.type === 'object' && x.name === 'Container');
+// let container = all.find(x => x.name === '__container__');
+// let self      = all.find(x => x.name === 'self');
+// let app       = all.find(x => x.name === 'MyBundledApp');
 
-console.log('apple:')
-walk(apple);
-
-console.log('self:')
-walk(self);
-
-// console.log('root:')
-// walk(root);
-
-function walk(node, level = 0, visited = new WeakSet(), fromEdge = { type: ''}) {
+function pathToRoot(node, visited = new WeakSet(), fromEdge) {
   if (visited.has(node)) { return; }
   visited.add(node);
-  console.log(new Array(level).fill('  ').join(' '), fromEdge.type, node.name);
 
-  level += 1;
-  for (let edge of node.edges) {
-    walk(edge.to, level, visited, edge);
+  let from = fromEdge ? fromEdge.from : node
+
+  if (node.index === 0) { return [node.name || 'root']; }
+
+  for (let edge of node.in) {
+    let path = pathToRoot(edge.from, visited, edge);
+    if (path) {
+      return [from].concat(path);
+    }
   }
 }
+
+debugger;
+console.log('testing');
+containers.forEach(container => console.log('path:', pathToRoot(container).join(' -> ')))
 
 // console.log(s.next().value);
 // console.log(s.next().value);
