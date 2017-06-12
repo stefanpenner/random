@@ -1,32 +1,50 @@
+'use strict';
+
 const fs = require('fs');
 const assert = require('assert');
+const util = require('util');
 
-// validate
-
+// hack to get the node debug to not try to print these out...
+const PARSED = new WeakMap();
+const NODES = new WeakMap();
+const EDGES = new WeakMap();
+const NODE_INDEX_BY_DEPARTING_EDGE_INDEX = new WeakMap();
 
 class Heapsnapshot {
   constructor(parsed) {
-    this.parsed = parsed;
+    PARSED.set(this, parsed);
 
-    let meta     = this.meta = parsed.snapshot.meta;
-    let fields   = this.node_fields = meta.node_fields
-    let types    = this.node_types = meta.node_types;
+    let meta        = this.meta = parsed.snapshot.meta;
+    let node_fields = this.node_fields = meta.node_fields
 
     // offsets
-    this.NODE_TYPE = fields.indexOf('type');
-    this.NODE_NAME = fields.indexOf('name');
-    this.NODE_ID = fields.indexOf('id');
-    this.NODE_SELF_SIZE = fields.indexOf('self_size');
-    this.NODE_EDGE_COUNT = fields.indexOf('edge_count');
-    this.NODE_TRACE_NODE_ID = fields.indexOf('trace_node_id');
-    this.NODE_TYPES = types[this.NODE_TYPE];
-    this.NODE_FIELD_COUNT = fields.length;
+    this.NODE_TYPE = node_fields.indexOf('type');
+    this.NODE_NAME = node_fields.indexOf('name');
+    this.NODE_ID = node_fields.indexOf('id');
+    this.NODE_SELF_SIZE = node_fields.indexOf('self_size');
+    this.NODE_EDGE_COUNT = node_fields.indexOf('edge_count');
+    this.NODE_TRACE_NODE_ID = node_fields.indexOf('trace_node_id');
+    this.NODE_TYPES = meta.node_types[this.NODE_TYPE];
+    this.NODE_SIZE = node_fields.length;
+
+    let edge_fields = meta.edge_fields;
+
+    this.EDGE_TYPE = edge_fields.indexOf('type');
+    this.EDGE_NAME_OR_INDEX = edge_fields.indexOf('name_or_index');
+    this.EDGE_TO_NODE = edge_fields.indexOf('to_node');
+    this.EDGE_TYPES = meta.edge_types[this.EDGE_TYPE];
+    this.EDGE_SIZE = meta.edge_fields.length;
 
     // validate
-    const NODE_TOTAL = this.NODE_TOTAL = parsed.nodes.length / this.NODE_FIELD_COUNT;
+    const NODE_TOTAL = this.NODE_TOTAL = parsed.nodes.length / this.NODE_SIZE;
     assert.equal(NODE_TOTAL, NODE_TOTAL | 0);
 
-    this._nodes = Object.create(null);
+    const EDGE_TOTAL = this.EDGE_TOTAL = parsed.edges.length / this.EDGE_SIZE;
+    assert.equal(EDGE_TOTAL, EDGE_TOTAL | 0);
+
+    NODES.set(this, Object.create(null));
+    EDGES.set(this, Object.create(null));
+    NODE_INDEX_BY_DEPARTING_EDGE_INDEX.set(this, Object.create(null));
   }
 
   summary() {
@@ -44,44 +62,132 @@ class Heapsnapshot {
     return new this(JSON.parse(fs.readFileSync(filePath, 'UTF8')));
   }
 
-  * nodeIterator() {
+  * build() {
     let index = 0;
+    let edge = 0;
+    let parsed = PARSED.get(this);
+    let nodes = NODES.get(this);
+    let edges = EDGES.get(this);
+    let OMG = NODE_INDEX_BY_DEPARTING_EDGE_INDEX.get(this);
 
-    while(this.parsed.nodes.length > index) {
-      yield this.nodeForIndex(index);
-      index += this.NODE_FIELD_COUNT;
+    while (parsed.nodes.length > index) {
+      let node = nodes[index] = this._createNode(index);
+      node.edge_start = edge;
+      edge += (node.edge_end - edge);
+
+      for (let i = node.edge_start; i < node.edge_end; i += this.EDGE_SIZE) {
+        OMG[i] = node.index;
+      }
+      yield;
+      index += this.NODE_SIZE;
+    }
+
+
+    for (let i = 0; i < parsed.edges.length; i += this.EDGE_SIZE) {
+      edges[i] = this._createEdge(i);
+      yield;
     }
   }
 
+  * nodeIterator() {
+    let index = 0;
+    let parsed = PARSED.get(this);
+
+    while(parsed.nodes.length > index) {
+      yield this.nodeForIndex(index);
+      index += this.NODE_SIZE;
+    }
+  }
+
+  * edgeIterator() {
+    let index = 0;
+    let parsed = PARSED.get(this);
+
+    while (parsed.edges.length > index) {
+      yield this.edgeForIndex(index);
+      index += this.EDGE_SIZE;
+    }
+  }
+
+  _createEdge(index) {
+    let parsed = PARSED.get(this);
+    let edges = parsed.edges;
+
+    let type = this.EDGE_TYPES[edges[index + this.EDGE_TYPE]];
+    let name_org_index = edges[index + this.EDGE_NAME_OR_INDEX];
+    let to_index = edges[index + this.EDGE_TO_NODE];
+    let from_index = NODE_INDEX_BY_DEPARTING_EDGE_INDEX.get(this)[index];
+
+    return new Edge(this, type, name_org_index, from_index, to_index);
+  }
+
   _createNode(index) {
-    let number = index / snapshot.NODE_FIELD_COUNT;
-    let parsed = snapshot.parsed;
+    let number = index / this.NODE_SIZE;
+    let parsed = PARSED.get(this);
     let nodes = parsed.nodes;
     let strings = parsed.strings;
 
     // 'type', 'name', 'id', 'self_size', 'edge_count', 'trac
-    let type = snapshot.NODE_TYPES[parsed.nodes[index + snapshot.NODE_TYPE]];
+    let type = this.NODE_TYPES[parsed.nodes[index + this.NODE_TYPE]];
     if (type === undefined) {
       // strange, sometimes we have a type value of 12, but never greater...
       // console.log(`index: ${index} value: ${parsed.nodes[index + NODE_TYPE]}`);
     }
 
-    let name = strings[parsed.nodes[index + snapshot.NODE_NAME]];
-    let id = nodes[index + snapshot.NODE_ID];
-    let self_size = nodes[index + snapshot.NODE_SELF_SIZE];
-    let edge_count = nodes[index + snapshot.NODE_EDGE_COUNT];
-    let trace_node_id = nodes[index + snapshot.NODE_TRACE_NODE_ID];
+    let name = strings[parsed.nodes[index + this.NODE_NAME]];
+    let id = nodes[index + this.NODE_ID];
+    let self_size = nodes[index + this.NODE_SELF_SIZE];
+    let edge_count = nodes[index + this.NODE_EDGE_COUNT];
+    let trace_node_id = nodes[index + this.NODE_TRACE_NODE_ID];
 
-    return new Node(index, number, name, type, id, self_size, edge_count, trace_node_id);
+    return new Node(this, index, number, name, type, id, self_size, edge_count, trace_node_id);
   }
 
   nodeForIndex(index) {
-    return this._nodes[index] = (this._nodes[index] = this._createNode(index));
+    let node = NODES.get(this)[index];
+    if (node === undefined) {
+      throw new Error(`unknonw node for index: ${index}`)
+    }
+
+    return node;
+  }
+
+  edgeForIndex(index) {
+    let edge = EDGES.get(this)[index];
+
+    if (edge === undefined) {
+      throw new Error(`unknonw edge for index: ${index}`)
+    }
+
+    return edge;
+  }
+
+
+  nodeToEdge(edge) {
+    return this.nodeForIndex(NODE_INDEX_BY_DEPARTING_EDGE_INDEX.get(this)[edge.index]);
+  }
+}
+
+class Edge {
+  constructor(snapshot, type, name_or_index, from_index, to_index) {
+    this._snapshot = snapshot;
+    this.type = type;
+    this.name_or_index = name_or_index;
+    this.to_index = to_index;
+    this.from_index = from_index;
+  }
+
+  get to() {
+    return this._snapshot.nodeForIndex(this.to_index);
+  }
+
+  get from() {
+    return this._snapshot.nodeForIndex(this.from_index);
   }
 }
 
 class Node {
-  constructor(index, number, name, type, id, self_size, edge_count, trace_node_id) {
+  constructor(snapshot, index, number, name, type, id, self_size, edge_count, trace_node_id) {
     this.index = index;
     this.number = number;
     this.name = name;
@@ -90,13 +196,68 @@ class Node {
     this.self_size = self_size;
     this.edge_count = edge_count;
     this.trace_node_id = this.trace_node_id;
+    this.edge_start = - 1;
+    this._edges = undefined;
+    this._snapshot = snapshot;
+  }
+
+  get edge_end() {
+    return this.edge_start + this.edge_count * this._snapshot.EDGE_SIZE;
+  }
+
+  get edges() {
+    if (this._edges === undefined) {
+      let all = PARSED.get(this._snapshot).edges;
+      let edges = [];
+      for (let i = this.edge_start; i < this.edge_end; i += this._snapshot.EDGE_SIZE) {
+        edges.push(this._snapshot.edgeForIndex(i));
+      }
+
+      this._edges = edges;
+    }
+
+    return this._edges;
+  }
+
+  toString() {
+    return `<node: ${this.index} >`
   }
 }
 
 const snapshot = Heapsnapshot.fromFileSync('./small.heapsnapshot');
-let s = snapshot.nodeIterator();
-console.log(s.next().value);
-console.log(s.next().value);
-console.log(s.next().value);
-console.log(s.next().value);
-console.log(snapshot.summary());
+
+// build
+for (let _ of snapshot.build()) { }
+
+let all = [...snapshot.nodeIterator()];
+let allEdges = [...snapshot.edgeIterator()];
+
+let apple = all.find(x => x.name === 'apple');
+let self = all.find(x => x.name === 'self');
+// let root = allEdges.filter(x => x.to === apple)[0].from;
+
+console.log('apple:')
+walk(apple);
+
+console.log('self:')
+walk(self);
+
+// console.log('root:')
+// walk(root);
+
+function walk(node, level = 0, visited = new WeakSet(), fromEdge = { type: ''}) {
+  if (visited.has(node)) { return; }
+  visited.add(node);
+  console.log(new Array(level).fill('  ').join(' '), fromEdge.type, node.name);
+
+  level += 1;
+  for (let edge of node.edges) {
+    walk(edge.to, level, visited, edge);
+  }
+}
+
+// console.log(s.next().value);
+// console.log(s.next().value);
+// console.log(s.next().value);
+// console.log(s.next().value);
+// console.log(snapshot.summary());
