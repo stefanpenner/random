@@ -210,6 +210,10 @@ class Edge {
   get from() {
     return this._snapshot.nodeForIndex(this.from_index);
   }
+
+  toString() {
+    return `<edge:${this.name_or_index} from: ${from.toStringContent()} to ${to.toStringContent()}>`;
+  }
 }
 
 class Node {
@@ -238,8 +242,11 @@ class Node {
     return this._snapshot.outEdgesFor(this);
   }
 
+  toStringContent() {
+    return `${this.name || '(unknown node)'}:${this.index}`
+  }
   toString() {
-    return `<${this.name || '(unknown node)'}:${this.index}>`
+    return `<${this.toStringContent()}>`
   }
 }
 
@@ -276,7 +283,6 @@ function pathToRoot(node, visited = new WeakSet(), fromEdge) {
   }
 }
 
-debugger;
 console.log('testing');
 containers.forEach(container => console.log('path:', pathToRoot(container).join(' -> ')))
 
