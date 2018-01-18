@@ -1,14 +1,14 @@
+
 use std::io;
 use std::io::Write;
 use std::process;
 
-fn main() {
-    // repl
-    //
+fn repl() {
     loop {
+        let mut input = String::new();
+
         print!("hi > ");
 
-        let mut input = String::new();
 
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut input).unwrap();
@@ -19,4 +19,8 @@ fn main() {
             println!("Unrecognized command '{}'.", input.trim());
         }
     }
+}
+
+fn main() {
+    repl()
 }
