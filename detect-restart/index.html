@@ -4,16 +4,29 @@
 <button onclick="localStorage.clear(); location.reload()">Clear</button>
 
 <script>
-  const matched = location.search.match(/timeout=(?<timeout>\d+)/)
-  const timeout = matched && Number(matched.groups.timeout) || 200;
+  const matchedLocation = location.search.match(/timeout=(?<timeout>\d+)/);
+  const matchedRedirect = location.search.match(/redirect=(?<redirect>[^&]+)/);
+  const clear = location.search.match(/clear=(?<clear>[^&]+)/);
+
+  const timeout = matchedLocation && Number(matchedLocation.groups.timeout) || 200;
+  const redirect = matchedRedirect && matchedRedirect.groups.redirect;
+
+  if (clear) {
+    localStorage.clear();
+  }
 
   if (!localStorage.getItem('didReload')) {
     setTimeout(() => {
       console.log('reloading');
       localStorage.setItem('didReload', true);
       message.textContent = 'reloading...';
-      location.reload();
+      if (redirect) {
+        location.href = redirect;
+      } else {
+        location.reload();
+      }
     }, timeout);
+
     message.textContent = 'Will Reload in 2000ms';
   } else {
     message.textContent = 'Did Reload';

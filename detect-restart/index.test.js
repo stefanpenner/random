@@ -27,8 +27,7 @@ async function run(url, callback) {
     const page = await browser.attachToTarget(targetId);
     await page.send('Page.enable', undefined);
 
-    await navigate(page, url);
-    await callback(page);
+    await callback(await navigate(page, url));
 
     await browser.send('Target.closeTarget', { targetId });
     // graceful browser shutdown
@@ -71,15 +70,42 @@ it('wait for navigation (no timeout)', async function() {
 it('wait for navigation (expect timeout)', async function() {
   this.timeout(10000);
   try {
-  await run(`file://${ __dirname }/index.html?timeout=500`, async page => {
-    await timeout(100, resolve => {
-      page.on('Page.frameNavigated', frame => {
-        resolve();
+    await run(`file://${ __dirname }/index.html?timeout=500`, async page => {
+      await timeout(100, resolve => {
+        page.on('Page.frameNavigated', frame => {
+          resolve();
+        });
       });
     });
-  });
     expect(true, 'expected this test to timeout').to.eql(false);
   } catch(e) {
     expect(e.message).to.match(/Timeout of '\d+ms' Exceeded/);
   }
 });
+
+
+it('wait for navigation (but navigate away by mistake)', async function() {
+  this.timeout(10000);
+
+  const originalURL= `file://${ __dirname }/index.html`
+
+  try {
+    await run(originalURL + "?redirect=https://google.com/" , async page => {
+      await timeout(10000, (resolve, reject) => {
+        page.on('Page.frameNavigated', payload => {
+          const { frame: { url }} = payload;
+          if (url !== originalURL) {
+            reject(new Error(`Unexpected location after frameNavigated. Expected: '${originalURL}' but got '${url}'`))
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+
+    expect(true, 'expected failure').to.eql(false);
+  } catch(e) {
+    expect(e.message).to.match(/Unexpected location after frameNavigated. Expected: '[^']+'/)
+  }
+});
+
