@@ -1,0 +1,15 @@
+{
+  "name": "detect-restart",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha index.test.js",
+    "test:debug": "mocha debug index.test.js"
+  },
+  "dependencies": {
+    "chai": "^4.2.0",
+    "chrome-debugging-client": "^1.0.2",
+    "mocha": "^6.2.0"
+  }
+}

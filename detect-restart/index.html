@@ -1,0 +1,21 @@
+<h1>Hello, World!</h1>
+<p id="message"></p>
+
+<button onclick="localStorage.clear(); location.reload()">Clear</button>
+
+<script>
+  const matched = location.search.match(/timeout=(?<timeout>\d+)/)
+  const timeout = matched && Number(matched.groups.timeout) || 200;
+
+  if (!localStorage.getItem('didReload')) {
+    setTimeout(() => {
+      console.log('reloading');
+      localStorage.setItem('didReload', true);
+      message.textContent = 'reloading...';
+      location.reload();
+    }, timeout);
+    message.textContent = 'Will Reload in 2000ms';
+  } else {
+    message.textContent = 'Did Reload';
+  }
+</script>
